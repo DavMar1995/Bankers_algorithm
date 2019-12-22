@@ -24,31 +24,34 @@ def safty():
     #                 b. Need i => Work
     #       If no such i exists, goto Step 4
     running = True
-    while running is True:
+    while running == True:
         pid = 0
         running = False
         # * search in processes
         for process in ProcessList:
             # * haven't been finished yet
-            if done[pid] is False:
+            if done[pid] == False:
                 counter = 0
                 availID = 0
-                print(f'process #{pid}: {process}, {type(process)}')
+                # @debug
+                # print(f'process #{pid}: {process}, {type(process)}')
                 for resource in process.resourceList:
                     # b. Need i => Work
-                    print(f'c: {counter}, aID: {availID} ')
-                    print(
-                        f'   a: {resource.allocation}, m: {resource.max}, ', end='')
-                    print(
-                        f'n: {resource.max - resource.allocation}, avail: {tempAvail[availID]} ', end='')
-                    print(
-                        f'=> {resource.max - resource.allocation <= tempAvail[availID]}')
+                    # @debug
+                    # print(f'c: {counter}, aID: {availID} ')
+                    # print(
+                    #     f'   a: {resource.allocation}, m: {resource.max}, ', end='')
+                    # print(
+                    #     f'n: {resource.max - resource.allocation}, avail: {tempAvail[availID]} ', end='')
+                    # print(
+                    #     f'=> {resource.max - resource.allocation <= tempAvail[availID]}')
                     if resource.max - resource.allocation <= tempAvail[availID]:
                         counter += 1
                     availID += 1
-                    print(f' => c: {counter}, aID: {availID}\n')
+                    # @debug
+                    # print(f' => c: {counter}, aID: {availID}\n')
                 # * 3. Work = Work + Allocation i
-                if counter is NUM_RESOURCE:
+                if counter == NUM_RESOURCE:
 
                     availID = 0
                     # * Finish[i] = true
@@ -65,7 +68,7 @@ def safty():
 
                     # * goto Step 2
                     running = True
-                    # * set this process is done
+                    # * set this process == done
                     done[pid] = True
                     # * add this process to sequence
                     sequence.append(pid)
@@ -79,28 +82,30 @@ def safty():
     # 4. If Finish[i] == true for all i => Safe state.
     printDone = False
     for i in done:
-        if i is False:
+        if not i:
             printDone = True
-    if printDone is True:
+    if printDone == True:
         for i in range(0, len(done)):
-            if done[i] is True:
-                print(f'process #{i} is done!')
+            if done[i] == True:
+                print(f'process #{i} == done!')
             else:
                 print(f'process #{i} isn\'t done!')
         return False
     return sequence
 
 
-def resourceRequest():
+def resourceRequest(first = True):
     # ? availID = 0
     # availValue = [3, 3, 2]
     # for i in Available:
     #     i = availValue[availID]
     #     availID += 1
     global Available, InitAvail
-    Available = InitAvail
+    if first: 
+        Available = InitAvail
 
-    print(f'A: {Available}\nI: {InitAvail}')
+    # @debug
+    # print(f'\nA: {Available}\nI: {InitAvail}\n')
 
     print("Resource-Request algorithm starts!\n")
 
@@ -118,19 +123,34 @@ def resourceRequest():
 
     # todo: 1. if `request` < `Available` => wait
     # todo: 2. let user consider to continue or not
-    requestTooBig = False
+    requestRes = 0
     for i in range(0, NUM_RESOURCE):
         if request[i] > Available[i]:
-            requestTooBig = True
+            # * bigger than `Available`
+            requestRes = 1
             break
-    if requestTooBig is True:
+        print(f'i={i} request: {request[i]}, need: {ProcessList[pid].resourceList[i].max - ProcessList[pid].resourceList[i].allocation}')
+        if request[i] > (ProcessList[pid].resourceList[i].max - ProcessList[pid].resourceList[i].allocation):
+            # * bigger than `Need`
+            requestRes = 2
+            break
+    if requestRes == 1:
         print('Request > Available! Process must wait!')
-        print(f'continue: {countineProgram()}')
-        if(countineProgram() is False):
+        # print(f'continue: {countineProgram()}')
+        if(not countineProgram()):
+            print(f'requestRes: {requestRes}')
             exit
+        # else:
+        #     pass
+    elif requestRes == 2:
+        print('Request > Need! Reject!')
+        if(not countineProgram()):
+            print(f'requestRes: {requestRes}')
+            exit
+    # else:
 
-            # @debug
-            # print(request, pid)
+    # @debug
+    # print(request, pid)
     print(f'before: {ProcessList[pid].resourceList[0].allocation}')
 
     for i in range(0, NUM_RESOURCE):
@@ -146,7 +166,7 @@ def resourceRequest():
     printStatus(Available)
 
     result = safty()
-    if result is False:
+    if not result:
         print('Unsafe!')
     else:
         print(f'Safe! Find the sequence: <', end="")
@@ -155,22 +175,35 @@ def resourceRequest():
             print(f' {i},', end='')
         print(">")
         print('Safe! Grant the request!')
-        countineProgram()
-        
+        if not countineProgram():
+            # exit
+            return False
+        else:
+            return 
+            
+            
+
+
+
 def countineProgram():
     print('Continue the Banker\'s algorithm? (Yes = y or Y) ', end='')
     key = input()
-    resume = False
-    if key is 'y' or key is 'Y':
-        resume = True
-    # else: key is 'n' or 'N':
+    # resume = False
+    print(f'key == {key}')
+    if key == 'y' or key == 'Y':
+        print('return True')
+        return True
+    # else: key == 'n' or 'N':
     # else:
     #     resume = False
         # print('Please enter `y` or `n`')
         # resume = countineProgram()
-    return resume
+    print('return False')
+    return False
 
 # print system status
+
+
 def printStatus(avail):
     print(f'Available status: ({avail[0]}, {avail[1]}, {avail[2]})')
     print("     Resource Allocation | Max Request | Remaining Needs:")
@@ -234,7 +267,7 @@ ProcessList.append(p4)
 printStatus(Available)
 
 result = safty()
-if result is False:
+if not result:
     print('Unsafe!')
 else:
     print(f'Safe! Find the sequence: <', end="")
@@ -244,4 +277,7 @@ else:
     print(">")
 
     # ? Available = InitAvail
-    resourceRequest()
+    if not resourceRequest():
+        exit
+    else:
+        resourceRequest()
